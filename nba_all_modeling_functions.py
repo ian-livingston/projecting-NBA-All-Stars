@@ -1,6 +1,6 @@
 
 
-def nba_log_regression(df, list_of_feature_columns, target_feature, folds=5, loops=3, print_all=False):
+def nba_log_regression(df, list_of_feature_columns, target_feature, RandomOverSampler=False, RandomUnderSampler=False, sample=0.5, folds=5, loops=3, print_all=False):
     '''
     Parameters:
     -----------
@@ -9,6 +9,12 @@ def nba_log_regression(df, list_of_feature_columns, target_feature, folds=5, loo
     list_of_feature_columns (list of strings): List of columns in df to be used as features.
 
     target_feature (string): Column in df to be used as target.
+
+    RandomOverSampler (hyperparameter): If True, minority class will be oversampled via RandomOverSampler. Default value is False.
+
+    RandomUnderSampler (hyperparameter): If True, majority class will be undersampled via RandomUnderSampler. Default value is False.
+
+    sample (float): Float representing desired proportion of majority/minority to over/undersample data to. Default value is .5.
     
     folds (int): Number of n_splits used by KFold. Default value is 5.
     
@@ -33,7 +39,9 @@ def nba_log_regression(df, list_of_feature_columns, target_feature, folds=5, loo
     from sklearn.model_selection import train_test_split, KFold, cross_val_score
     from sklearn.preprocessing import StandardScaler
     from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import classification_report, confusion_matrix, plot_confusion_matrix
+    from sklearn.metrics import classification_report, confusion_matrix, plot_confusion_matrix, log_loss
+    from imblearn.over_sampling import RandomOverSampler
+    from imblearn.under_sampling import RandomUnderSampler
 
     features = list_of_feature_columns
     X = df[features]
@@ -41,6 +49,16 @@ def nba_log_regression(df, list_of_feature_columns, target_feature, folds=5, loo
 
     # Test-train split
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=10)
+
+    # Oversampling on training set (if called by parameter)
+    if RandomOverSampler == True:
+        ros = RandomOverSampler(sampling_strategy=sample, random_state=10)
+        X_train, y_train = ros.fit_sample(X_train, y_train)
+
+    # Undersampling on training set (if called by parameter)
+    elif RandomUnderSampler == True:
+        rus = RandomUnderSampler(sampling_strategy=sample, random_state=10)
+        X_train, y_train = rus.fit_sample(X_train, y_train)
 
     # Scaling training set (for now) and testing set (for later)
     scaler = StandardScaler()
@@ -65,18 +83,20 @@ def nba_log_regression(df, list_of_feature_columns, target_feature, folds=5, loo
     score = np.mean(listed_scores)
     class_report = classification_report(y_test, logr_predictions)
     con_matrix = confusion_matrix(y_test, logr_predictions)
+    loss = log_loss(y_test, logr_predictions)
     
     if print_all == True:
         print(f'Score on test set ({folds}-fold validation): {np.mean(listed_scores)}\n')
+        print(f'Log loss: {loss}\n')
         print(f'Classification report:\n {class_report}\n')
         fig, ax = plt.subplots(dpi=150)
         plot_confusion_matrix(logr, X_test_scaled, y_test, ax=ax, cmap="Oranges")
     
-    return score, class_report, con_matrix
+    return score, loss, class_report, con_matrix
 
 
 # For KNN
-def nba_knn(df, list_of_feature_columns, target_feature, k=10, folds=5, loops=3, print_all=False):
+def nba_knn(df, list_of_feature_columns, target_feature, RandomOverSampler=False, RandomUnderSampler=False, sample=0.5, k=10, folds=5, loops=3, print_all=False):
     '''
     Parameters:
     -----------
@@ -85,6 +105,12 @@ def nba_knn(df, list_of_feature_columns, target_feature, k=10, folds=5, loops=3,
     list_of_feature_columns (list of strings): List of columns in df to be used as features.
 
     target_feature (string): Column in df to be used as target.
+
+    RandomOverSampler (hyperparameter): If True, minority class will be oversampled via RandomOverSampler. Default value is False.
+
+    RandomUnderSampler (hyperparameter): If True, majority class will be undersampled via RandomUnderSampler. Default value is False.
+
+    sample (float): Float representing desired proportion of majority/minority to over/undersample data to. Default value is .5.
 
     k (int): Number of folds in KFold cross-validation.
     
@@ -111,7 +137,9 @@ def nba_knn(df, list_of_feature_columns, target_feature, k=10, folds=5, loops=3,
     from sklearn.model_selection import train_test_split, KFold, cross_val_score
     from sklearn.preprocessing import StandardScaler
     from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-    from sklearn.metrics import classification_report, confusion_matrix, plot_confusion_matrix
+    from sklearn.metrics import classification_report, confusion_matrix, plot_confusion_matrix, log_loss
+    from imblearn.over_sampling import RandomOverSampler
+    from imblearn.under_sampling import RandomUnderSampler
 
     features = list_of_feature_columns
     X = df[features]
@@ -119,6 +147,16 @@ def nba_knn(df, list_of_feature_columns, target_feature, k=10, folds=5, loops=3,
 
     # Test-train split
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=10)
+
+    # Oversampling on training set (if called by parameter)
+    if RandomOverSampler == True:
+        ros = RandomOverSampler(sampling_strategy=sample, random_state=10)
+        X_train, y_train = ros.fit_sample(X_train, y_train)
+
+    # Undersampling on training set (if called by parameter)
+    elif RandomUnderSampler == True:
+        rus = RandomUnderSampler(sampling_strategy=sample, random_state=10)
+        X_train, y_train = rus.fit_sample(X_train, y_train)
 
     # Scaling training set (for now) and testing set (for later)
     scaler = StandardScaler()
@@ -141,18 +179,20 @@ def nba_knn(df, list_of_feature_columns, target_feature, k=10, folds=5, loops=3,
     score = np.mean(listed_scores)
     class_report = classification_report(y_test, knn_predictions)
     con_matrix = confusion_matrix(y_test, knn_predictions)
+    loss = log_loss(y_test, knn_predictions)
     
     if print_all == True:
         print(f'Score on test set ({folds}-fold validation): {np.mean(listed_scores)}\n')
+        print(f'Log loss: {loss}\n')
         print(f'Classification report:\n {class_report}\n')
         fig, ax = plt.subplots(dpi=150)
         plot_confusion_matrix(knn, X_test_scaled, y_test, ax=ax, cmap="Oranges")
     
-    return score, class_report, con_matrix
+    return score, loss, class_report, con_matrix
 
 
 # For random forest
-def nba_random_forest(df, list_of_feature_columns, target_feature, folds=5, loops=3, print_all=False):
+def nba_random_forest(df, list_of_feature_columns, target_feature, RandomOverSampler=False, RandomUnderSampler=False, sample=0.5, folds=5, loops=3, print_all=False):
     '''
     Parameters:
     -----------
@@ -161,6 +201,12 @@ def nba_random_forest(df, list_of_feature_columns, target_feature, folds=5, loop
     list_of_feature_columns (list of strings): List of columns in df to be used as features.
 
     target_feature (string): Column in df to be used as target.
+
+    RandomOverSampler (hyperparameter): If True, minority class will be oversampled via RandomOverSampler. Default value is False.
+
+    RandomUnderSampler (hyperparameter): If True, majority class will be undersampled via RandomUnderSampler. Default value is False.
+
+    sample (float): Float representing desired proportion of majority/minority to over/undersample data to. Default value is .5.
     
     folds (int): Number of n_splits used by KFold. Default value is 5.
     
@@ -184,7 +230,9 @@ def nba_random_forest(df, list_of_feature_columns, target_feature, folds=5, loop
     import matplotlib.pyplot as plt
     from sklearn.model_selection import train_test_split, KFold, cross_val_score
     from sklearn.ensemble import RandomForestClassifier
-    from sklearn.metrics import classification_report, roc_auc_score, roc_curve, confusion_matrix, plot_confusion_matrix
+    from sklearn.metrics import classification_report, confusion_matrix, plot_confusion_matrix, log_loss
+    from imblearn.over_sampling import RandomOverSampler
+    from imblearn.under_sampling import RandomUnderSampler
 
     features = list_of_feature_columns
     X = df[features]
@@ -192,6 +240,16 @@ def nba_random_forest(df, list_of_feature_columns, target_feature, folds=5, loop
 
     # Test-train split
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=10)
+
+    # Oversampling on training set (if called by parameter)
+    if RandomOverSampler == True:
+        ros = RandomOverSampler(sampling_strategy=sample, random_state=10)
+        X_train, y_train = ros.fit_sample(X_train, y_train)
+    
+    # Undersampling on training set (if called by parameter)
+    elif RandomUnderSampler == True:
+        rus = RandomUnderSampler(sampling_strategy=sample, random_state=10)
+        X_train, y_train = rus.fit_sample(X_train, y_train)
 
     # Instantiating and fitting
     ran_for = RandomForestClassifier()
@@ -209,18 +267,20 @@ def nba_random_forest(df, list_of_feature_columns, target_feature, folds=5, loop
     score = np.mean(listed_scores)
     class_report = classification_report(y_test, ran_for_predictions)
     con_matrix = confusion_matrix(y_test, ran_for_predictions)
+    loss = log_loss(y_test, ran_for_predictions)
     
     if print_all == True:
         print(f'Score on test set ({folds}-fold validation): {np.mean(listed_scores)}\n')
+        print(f'Log loss: {loss}\n')
         print(f'Classification report:\n {class_report}\n')
         fig, ax = plt.subplots(dpi=150)
         plot_confusion_matrix(ran_for, X_test, y_test, ax=ax, cmap="Oranges")
     
-    return score, class_report, con_matrix
+    return score, loss, class_report, con_matrix
 
 
 # For SVC
-def nba_svc(df, list_of_feature_columns, target_feature, SMOTE=False, RandomOverSampler=False, folds=5, loops=3, print_all=False):
+def nba_svc(df, list_of_feature_columns, target_feature, SMOTE=False, RandomOverSampler=False, RandomUnderSampler=False, sample=0.5, folds=5, loops=3, print_all=False):
     '''
     Parameters:
     -----------
@@ -231,7 +291,13 @@ def nba_svc(df, list_of_feature_columns, target_feature, SMOTE=False, RandomOver
     target_feature (string): Column in df to be used as target.
 
     SMOTE (hyperparameter): If True, SMOTE will be applied to data in both train and test sets before 
-    modeling. Default value is False. 
+    modeling. Default value is False.
+
+    RandomOverSampler (hyperparameter): If True, minority class will be oversampled via RandomOverSampler. Default value is False.
+
+    RandomUnderSampler (hyperparameter): If True, majority class will be undersampled via RandomUnderSampler. Default value is False.
+
+    sample (float): Float representing desired proportion of majority/minority to over/undersample data to. Default value is .5.
     
     folds (int): Number of n_splits used by KFold. Default value is 5.
     
@@ -255,10 +321,11 @@ def nba_svc(df, list_of_feature_columns, target_feature, SMOTE=False, RandomOver
     import matplotlib.pyplot as plt
     from sklearn.model_selection import train_test_split, KFold, cross_val_score
     from sklearn.preprocessing import StandardScaler
-    from sklearn.metrics import classification_report, confusion_matrix, plot_confusion_matrix
+    from sklearn.metrics import classification_report, confusion_matrix, plot_confusion_matrix, log_loss
     from sklearn.svm import SVC
     from imblearn.over_sampling import SMOTE
     from imblearn.over_sampling import RandomOverSampler
+    from imblearn.under_sampling import RandomUnderSampler
 
     features = list_of_feature_columns
     X = df[features]
@@ -267,17 +334,24 @@ def nba_svc(df, list_of_feature_columns, target_feature, SMOTE=False, RandomOver
     # Test-train split
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=10)
 
+    # Applying on training set (if called by parameter)
+    if SMOTE == True:
+        X_train, y_train = SMOTE(random_state=10).fit_sample(X_train, y_train)
+
+    # Oversampling on training set (if called by parameter)
+    elif RandomOverSampler == True:
+        ros = RandomOverSampler(sampling_strategy=sample, random_state=10)
+        X_train, y_train = ros.fit_sample(X_train, y_train)
+
+    # Undersampling on training set (if called by parameter)
+    elif RandomUnderSampler == True:
+        rus = RandomUnderSampler(sampling_strategy=sample, random_state=10)
+        X_train, y_train = rus.fit_sample(X_train, y_train)
+
     # Scaling training set (for now) and testing set (for later)
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
-
-    if SMOTE == True:
-        X_train_scaled, y_train = SMOTE(random_state=10).fit_sample(X_train_scaled, y_train)
-
-    elif RandomOverSampler == True:
-        ros = RandomOverSampler(random_state=10)
-        X_train_scaled, y_train = ros.fit_sample(X_train_scaled, y_train)
 
     # Instantiating and fitting
     svc = SVC()
@@ -294,11 +368,13 @@ def nba_svc(df, list_of_feature_columns, target_feature, SMOTE=False, RandomOver
     score = np.mean(listed_scores)
     class_report = classification_report(y_test, svc_predictions)
     con_matrix = confusion_matrix(y_test, svc_predictions)
+    loss = log_loss(y_test, svc_predictions)
     
     if print_all == True:
         print(f'Score on test set ({folds}-fold validation): {np.mean(listed_scores)}\n')
+        print(f'Log loss: {loss}\n')
         print(f'Classification report:\n {class_report}\n')
         fig, ax = plt.subplots(dpi=150)
         plot_confusion_matrix(svc, X_test_scaled, y_test, ax=ax, cmap="Oranges")
     
-    return score, class_report, con_matrix
+    return score, loss, class_report, con_matrix

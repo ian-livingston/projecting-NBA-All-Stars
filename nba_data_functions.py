@@ -167,3 +167,92 @@ def per_game_rel_to_season(df, list_of_features):
         df[relative_feature] = relative_feature_list
 
     return df
+
+
+# For creating a column with values quantifying a guy's TV market value that year
+# This version does not account for guy's who are not rookies in 2000 (first year of data)
+def tv_market_cumulative(ordered_df):
+
+    profile_column = []
+    for i in tqdm(range(ordered_df.shape[0])):
+        if i == 0:
+            total_profile = ordered_df.iloc[0]["TV market size"]
+        else:
+            x = i
+            total_market = []
+            current_guy = ordered_df.iloc[x]["Player"]
+            this_year_market = ordered_df.iloc[x]["TV market size"]
+            total_market.append(this_year_market)
+            previous_guy = ordered_df.iloc[x-1]["Player"]
+            if current_guy == previous_guy:
+                same_guy = True
+                while same_guy == True:
+                    last_year_market = ordered_df.iloc[x-1]["TV market size"]
+                    total_market.append(last_year_market)
+                    x -= 1
+                    same_guy = ordered_df.iloc[x]["Player"] == reindexed_master_df.sort_values(by=["Player", "Year"]).iloc[x-1]["Player"]
+                for _ in range(0, len(total_market[::-1])):
+                    if _ == 0:
+                        profile = total_market[::-1][0] * 0.75     # Rookies get 0.75 of full value
+                        best_profile_year = 0
+                    else:
+                        if total_market[::-1][_] > total_market[::-1][_-1]:
+                            if _ > 1:
+                                exponent = _ - 1
+                                profile += total_market[::-1][_] * (1.1**exponent)
+                            else:
+                                profile += total_market[::-1][_]
+                            best_profile_year = _
+                        else:
+                            if _ > 1:
+                                exponent = _ - 1
+                                profile += total_market[::-1][best_profile_year] * (1.1**exponent)
+                            else:
+                                profile += total_market[::-1][best_profile_year]
+            else:
+                profile = total_market[0] * 0.75      # Rookies get 0.75 of full value
+            total_profile = profile/len(total_market)
+        profile_column.append(round(total_profile, 0))
+
+    ordered_df["Adjusted TV market value"] = profile_column
+    
+    return ordered_df
+
+
+# For creating a column with values quantifying a guy's projected trajectory
+def get_trajectory(ordered_df):
+
+    projected_changes = []
+    for i in tqdm(range(1, ordered_df.shape[0])):
+        x = i
+        current_guy = reindexed_master_df.sort_values(by=["Player", "Year"]).iloc[x]["Player"]
+        previous_guy = reindexed_master_df.sort_values(by=["Player", "Year"]).iloc[x-1]["Player"]
+        if current_guy == previous_guy:
+            same_guy = True
+            change_vector = []
+            while same_guy == True:
+                this_year_stat = reindexed_master_df.sort_values(by=["Player", "Year"]).iloc[x]["PTS/game"]
+                last_year_stat = reindexed_master_df.sort_values(by=["Player", "Year"]).iloc[x-1]["PTS/game"]
+                stat_change = this_year_stat - last_year_stat
+                change_vector.append(stat_change)
+                x -= 1
+                same_guy = reindexed_master_df.sort_values(by=["Player", "Year"]).iloc[x]["Player"] == reindexed_master_df.sort_values(by=["Player", "Year"]).iloc[x-1]["Player"]
+            if len(change_vector) > 1:
+                change_change_vector = [(change_vector[_] - change_vector[_+1]) for _ in range(0, (len(change_vector)-1))]
+                if len(change_change_vector) > 1:
+                    bump = (change_change_vector[0] + change_change_vector[1])/2
+                    if change_change_vector[0] > 5:
+                        bump *= 1.25
+                    elif change_change_vector[0] < -5:
+                        bump -= 1.25
+                elif len(change_change_vector) == 1:
+                    bump = change_change_vector[0]
+                projected_changes.append(bump)
+            else:
+                projected_changes.append(stat_change)
+        else:
+            projected_changes.append(0)
+
+    ordered_df["Trajectory"] = projected_changes
+    
+    return ordered_df  
