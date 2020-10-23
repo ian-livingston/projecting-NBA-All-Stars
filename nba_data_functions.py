@@ -255,4 +255,59 @@ def get_trajectory(ordered_df):
 
     ordered_df["Trajectory"] = projected_changes
     
-    return ordered_df  
+    return ordered_df
+
+
+# For getting clutch stats from stats.NBA.com
+def get_clutch_stats(list_of_seasons):
+
+    clutch_dict = {}
+    for x, season in tqdm(enumerate(list_of_seasons)):
+        driver = webdriver.Chrome(chromedriver)
+        driver.get("https://stats.nba.com/players/clutch-traditional/?sort=PTS&dir=-1&Season={}&SeasonType=Regular%20Season&PerMode=Totals".format(season))
+        time.sleep(10)
+        soup = BeautifulSoup(driver.page_source)
+        num_clicks_needed = len(soup.find("div", class_="stats-table-pagination__info").find_all("option")) - 1
+        year = '20' + str(season)[-2:]
+        year_int = int(year)
+        if x == 0:
+            clutch_minutes_list = []
+            clutch_points_list = []
+            clutch_assists_list = []
+            clutch_fantasty_points_list = []
+            names_list = []
+            years_list = []
+        
+        for i in tqdm(range(num_clicks_needed)):
+            for player in soup.find("tbody").find_all("tr"):
+                years_list.append(year_int)
+                name = player.find_all("td")[1].text.strip()
+                names_list.append(name)
+                clutch_minutes = player.find_all("td")[7].text
+                clutch_minutes_list.append(float(clutch_minutes))
+                clutch_points = player.find_all("td")[8].text
+                clutch_points_list.append(float(clutch_points))
+                clutch_assists = player.find_all("td")[21].text
+                clutch_assists_list.append(float(clutch_assists))
+                clutch_fantasty_points = player.find_all("td")[26].text
+                clutch_fantasty_points_list.append(float(clutch_fantasty_points))
+            next_page = driver.find_element_by_xpath('//a[@class="stats-table-pagination__next"]')
+            next_page.click()
+            soup = BeautifulSoup(driver.page_source)
+
+        print(len(clutch_minutes_list), len(clutch_points_list), len(clutch_assists_list), len(clutch_fantasty_points_list), len(years_list))
+        time.sleep(5)
+
+    clutch_dict["Player"] = names_list
+    clutch_dict["Year"] = years_list
+    clutch_dict["Clutch minutes"] = clutch_minutes_list
+    clutch_dict["Clutch points"] = clutch_points_list
+    clutch_dict["Clutch assists"] = clutch_assists_list
+    clutch_dict["Clutch fantasy points"] = clutch_fantasty_points_list
+    
+    clutch_stats_df = pd.DataFrame.from_dict(clutch_dict)
+
+    with open("clutch.pickle", "wb") as to_write:
+        pickle.dump(clutch_stats_df, to_write)
+
+    return clutch_stats_df

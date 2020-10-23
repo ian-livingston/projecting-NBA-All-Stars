@@ -61,8 +61,8 @@ def nba_log_regression(df, list_of_feature_columns, target_feature, RandomOverSa
         X_train, y_train = rus.fit_sample(X_train, y_train)
 
     # Scaling training set (for now) and testing set (for later)
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
+    scaler = StandardScaler().fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
     # Instantiating and fitting
@@ -92,7 +92,7 @@ def nba_log_regression(df, list_of_feature_columns, target_feature, RandomOverSa
         fig, ax = plt.subplots(dpi=150)
         plot_confusion_matrix(logr, X_test_scaled, y_test, ax=ax, cmap="Oranges")
     
-    return score, loss, class_report, con_matrix
+    return score, loss, class_report, con_matrix, scaler, logr
 
 
 # For KNN
@@ -378,3 +378,90 @@ def nba_svc(df, list_of_feature_columns, target_feature, SMOTE=False, RandomOver
         plot_confusion_matrix(svc, X_test_scaled, y_test, ax=ax, cmap="Oranges")
     
     return score, loss, class_report, con_matrix
+
+
+
+
+def nba_logr_model_predict(df, list_of_feature_columns, target_feature, max_age=50, RandomOverSampler=False, RandomUnderSampler=False, sample=0.5, folds=5, loops=3, print_all=False):
+    '''
+    Parameters:
+    -----------
+    df (df): Data frame to pull data from (not split).
+
+    list_of_feature_columns (list of strings): List of columns in df to be used as features.
+
+    target_feature (string): Column in df to be used as target.
+
+    season_to_predict_on (int): The season (format: YYYY for year when season ends) on which the model will be run after fitting.
+
+    RandomOverSampler (hyperparameter): If True, minority class will be oversampled via RandomOverSampler. Default value is False.
+
+    RandomUnderSampler (hyperparameter): If True, majority class will be undersampled via RandomUnderSampler. Default value is False.
+
+    sample (float): Float representing desired proportion of majority/minority to over/undersample data to. Default value is .5.
+    
+    folds (int): Number of n_splits used by KFold. Default value is 5.
+    
+    loops (int): Number of times to run cross_val_score using a different 
+    random state (which begin at 0 and increment up to the value of loops).
+        
+    print_all: If True, function prints the list of all r2 scores as well. 
+    Default value is False.
+    
+    Returns:
+    --------
+    score (float): F1 score (cross-validated)
+    
+    class_report (array): Classification report
+    
+    con_matrix (array): Confusion matrix (will be plotted if print_all=True)
+    '''
+
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score, plot_confusion_matrix, log_loss
+    import time
+    import random
+
+    # Fitting a logr model and returning it
+    score, loss, class_report, con_matrix, scaler, MODEL = nba_log_regression(df, list_of_feature_columns, target_feature, RandomOverSampler=RandomOverSampler, RandomUnderSampler=RandomUnderSampler, sample=sample, folds=folds, loops=loops, print_all=False)
+
+    # Picking a full season of data to test on
+    possible_seasons = [2000, 2001, 2002, 2010, 2011, 2012, 2013, 2014, 2015, 2008, 2009, 2003, 2004, 2005, 2006, 2007]
+    test_season = random.choice(possible_seasons)
+    print(f'Test season: {test_season}')
+    time.sleep(3)
+    test_season_df = df.loc[(df["Year"] == test_season) & (df["Age"] <= max_age)]
+    X = test_season_df[list_of_feature_columns]
+    y = test_season_df[target_feature]
+
+    # Scaling based on fit from training/testing
+    X_scaled = scaler.transform(X)
+
+    # Generating predictions on test season
+    predictions = MODEL.predict(X_scaled)
+    prob_predictions = MODEL.predict_proba(X_scaled)
+    prob_dict = dict(zip(list(X.index), list(prob_predictions)))
+
+    eligible_players = [[player, list(chance)[1]] for player, chance in prob_dict.items()]
+    top_24 = [[player, chance] for player, chance in sorted(eligible_players, key=lambda item: item[1], reverse=True)][:24]
+    print(f'Top 24 most likely {test_season+1} NBA All-Stars:\n')
+    for player in top_24:
+        guy = player[0].split(", ")[0]
+        percentage_chance = str(round((player[1] * 100), 2))
+        if test_season_df.loc[test_season_df["Player"] == guy]["All-Star next season?"].values[0] == 1:
+            real = f'Was a real {test_season} All-Star'
+        else:
+            real = f'Was not a real {test_season} All-Star'
+        print(f'{guy}: {percentage_chance}% ...... ({real})\n')
+
+    fig, ax = plt.subplots(dpi=150)
+    plot_confusion_matrix(MODEL, X_scaled, y, ax=ax, cmap="Oranges")
+    #print(f'Overall accuracy: {accuracy_score(y, predictions)}')
+    #print(f'Precision: {precision_score(y, predictions, average="weighted")}')
+    #print(f'Recall: {recall_score(y, predictions, average="weighted")}')
+    #print(f'F!: {f1_score(y, predictions, average="weighted")}')
+    
