@@ -261,6 +261,8 @@ def get_trajectory(ordered_df):
 # For getting clutch stats from stats.NBA.com
 def get_clutch_stats(list_of_seasons):
 
+    chromedriver = "/Applications/chromedriver" # path to the chromedriver executable
+    os.environ["webdriver.chrome.driver"] = chromedrive
     clutch_dict = {}
     for x, season in tqdm(enumerate(list_of_seasons)):
         driver = webdriver.Chrome(chromedriver)
@@ -311,3 +313,93 @@ def get_clutch_stats(list_of_seasons):
         pickle.dump(clutch_stats_df, to_write)
 
     return clutch_stats_df
+
+
+# For making a column with values reflecting whether a guy has previously made 0, 1-3, 4-7, or 8+ All-Star Games
+# This currently cannot account for players who made All-Star Games before 2000-01 season
+# First function is for binning returned years
+def all_star_history_bins(single_year_value):
+    if single_year_value >= 8:
+        all_star_bin = "8+"
+    elif single_year_value >= 4:
+        all_star_bin = "4-7"
+    elif single_year_value >= 1:
+        all_star_bin = "1-3"
+    else:
+        all_star_bin = "0"
+    
+    return all_star_bin
+
+
+def get_past_all_star_games(ordered_df):
+
+    all_star_history = []
+    for i in tqdm(range(ordered_df.shape[0])):
+        x = i
+        current_guy = ordered_df.iloc[x]["Player"]
+        previous_guy = ordered_df.iloc[x-1]["Player"]
+        if i == 0:
+            all_star_selections_to_date = 0
+            if ordered_df.iloc[x]["All-Star?"] == 1:
+                all_star_selections_to_date += 1
+            all_star_history.append(all_star_selections_to_date)
+            print(current_guy, all_star_selections_to_date)
+        else:
+            if current_guy == previous_guy:
+                if ordered_df.iloc[x]["All-Star?"] == 1:
+                    all_star_selections_to_date += 1
+            else:
+                all_star_selections_to_date = 0
+                if ordered_df.iloc[x]["All-Star?"] == 1:
+                    all_star_selections_to_date += 1
+            all_star_history.append(all_star_selections_to_date)
+            print(current_guy, all_star_selections_to_date)
+
+    ordered_df["Past All-Star Games (incl this season)"] = all_star_history
+    ordered_df["Past All-Star Games (incl this season)"] = ordered_df["Past All-Star Games (incl this season)"].apply(lambda x: all_star_history_bins(x))
+    
+    return ordered_df
+
+
+# For getting links to all NBA player photos
+def get_photo_links(list_of_seasons):
+
+    import pandas as pd
+    import numpy as np
+    import time
+    import requests
+    import re
+    from bs4 import BeautifulSoup
+    from fake_useragent import UserAgent
+    import pickle
+    from tqdm import tqdm
+    from selenium import webdriver
+    from selenium.webdriver.common.keys import Keys
+    import time, os
+
+ua = UserAgent()
+user_agent = {'User-agent': ua.random}
+chromedriver = "/Applications/chromedriver"
+os.environ["webdriver.chrome.driver"] = chromedriver
+
+    photo_lists = []
+    for x, season in tqdm(enumerate(list_of_seasons)):
+        driver = webdriver.Chrome(chromedriver)
+        driver.get("https://stats.nba.com/players/clutch-traditional/?sort=PTS&dir=-1&Season={}&SeasonType=Regular%20Season&PerMode=Totals".format(season))
+        time.sleep(10)
+        soup = BeautifulSoup(driver.page_source)
+        num_clicks_needed = len(soup.find("div", class_="stats-table-pagination__info").find_all("option")) - 1
+        year = '20' + str(season)[-2:]
+        year_int = int(year)
+        
+        for i in tqdm(range(num_clicks_needed)):
+            for player in soup.find("tbody").find_all("tr"):
+                years_list.append(year_int)
+                name = player.find_all("td")[1].text.strip()
+                photo_link = player.find_all("td")[1]["href"]
+                photo_lists.append(name, photo_link)   
+            next_page = driver.find_element_by_xpath('//a[@class="stats-table-pagination__next"]')
+            next_page.click()
+            soup = BeautifulSoup(driver.page_source)
+
+    return photo_lists
