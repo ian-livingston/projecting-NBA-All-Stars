@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicting NBA All-Stars</title>
+    <style>
+
+.drop-down-label {
+  font-family: Helvetica;
+  font-weight: bold;
+  color: black;
+  font-size: 22px;
+  text-align: center;
+}
+
+.drop-down {
+  font-family: Helvetica;
+}
+
+.button {
+  display: inline-block;
+  border-radius: 4px;
+  background-color: black;
+  font-family: Helvetica;
+  border: none;
+  color: white;
+  text-align: center;
+  font-size: 28px;
+  padding: 20px;
+  width: 200px;
+  transition: all 0.3s;
+  cursor: pointer;
+  margin: 50px;
+}
+
+.button:hover {
+  background-color: #F55127;
+}
+
+.button span {
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  transition: 0.3s;
+}
+
+.button span:after {
+  content: '\00bb';
+  position: absolute;
+  opacity: 0;
+  top: 0;
+  right: -20px;
+  transition: 0.3s;
+}
+
+.button:hover span {
+  padding-right: 25px;
+}
+
+.button:hover span:after {
+  opacity: 1;
+  right: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 600px minmax(0px, 150px) minmax(300px, 400px) auto;
+}
+
+.top-left {
+  grid-column-start: 1;
+  grid-column-end: 2;
+}
+
+.mid-margin {
+  grid-column-start: 2;
+  grid-column-end: 3;
+}
+
+.top-center {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  text-align: center;
+}
+
+.top-right {
+  grid-column-start: 4;
+  grid-column-end: 5;
+  text-align: center;
+  float: center;
+}
+
+.bottom {
+  grid-column-start: 1;
+  grid-column-end: 4;
+}
+
+.project-title {
+  font-family: Helvetica;
+  font-weight: bold;
+  font-size: 60px;
+  color: black;
+  text-align: left;
+  margin-left: 30px;
+  margin-top: 30px;"
+}
+
+.project-subtitle {
+  font-family: Helvetica;
+  font-weight: normal;
+  font-size: 20px;
+  color: black;
+  text-align: left;
+  margin-left: 30px;
+  margin-top: -40px;"
+}
+
+.court-image {
+  z-index: 1;
+  position: relative;
+  top: 0px;
+} 
+
+#court-image {
+  height: auto;
+  width: 100%;
+  z-index: 1;
+  margin: 0;
+  right: 0%;
+  left: 0%;
+  text-align: center;
+}
+
+    </style>
+  </head>
+  <body>
+  <div  class="grid">
+    <header>
+      <div class="top-left">
+        <h2 class="project-title">PREDICTING<br/>NEXT SEASON'S<br/>NBA ALL-STARS <span style="font-size: 300;">          &#8594;</span></h2>
+        <h3 class="project-subtitle">USING CLASSIFICATION MODELS INCLUDING<br/>LOGISTIC REGRESSION, KNN, RANDOM FOREST,<br/> SVC & ENSEMBLING</h3>
+      </div>
+    </header>
+    <div class="top-center" style="margin-top: 55px">  
+      <form action="/teams" method="POST">
+        <label class="drop-down-label" for="age">OPTIONAL:<br/>PICK A MAX AGE</label>
+        <br/>
+        <br/>
+        <input list="age-form" name="age-form" id="age">
+        <datalist class="drop-down" id="age-form">
+          <option value="all, {{ year_choice }}">ALL AGES</option>
+          <option value="21, {{ year_choice }}">21 and under</option>
+          <option value="22, {{ year_choice }}">22 and under</option>
+          <option value="23, {{ year_choice }}">23 and under</option>
+          <option value="24, {{ year_choice }}">24 and under</option>
+          <option value="25, {{ year_choice }}">25 and under</option>
+          <option value="26, {{ year_choice }}">26 and under</option>
+          <option value="27, {{ year_choice }}">27 and under</option>
+          <option value="28, {{ year_choice }}">28 and under</option>
+          <option value="29, {{ year_choice }}">29 and under</option>
+          <option value="30, {{ year_choice }}">30 and under</option>
+          <option value="31, {{ year_choice }}">31 and under</option>
+          <option value="32, {{ year_choice }}">32 and under</option>
+          <option value="33, {{ year_choice }}">33 and under</option>
+          <option value="34, {{ year_choice }}">34 and under</option>
+          <option value="35, {{ year_choice }}">35 and under</option>
+          <option value="36, {{ year_choice }}">36 and under</option>
+          <option value="37, {{ year_choice }}">37 and under</option>
+          <option value="38, {{ year_choice }}">38 and under</option>
+          <option value="39, {{ year_choice }}">39 and under</option>
+          <option value="40, {{ year_choice }}">40 and under</option>
+        </datalist>
+        <br/>  
+        <input class="button" type="submit" value="PREDICT">
+      </div>
+      </form>
+    </div>
+    <div class="bottom">  
+      <img class="court-image" id="court-image" media=all alt="Court 1" src="{{ user_image }}" />
+    </div>  
+  </body>
+</html>

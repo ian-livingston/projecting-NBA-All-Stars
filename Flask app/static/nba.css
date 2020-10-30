@@ -1,0 +1,19 @@
+* {
+  box-sizing: border-box;
+}
+
+.project_title {
+  font-family: Helvetica;
+  font-weight: bold;
+  font-size: 40px;
+  color: black;
+  text-align: left;
+}
+
+.court-image {
+  margin: 0;
+  width: 100%;
+  height: auto; 
+  text-align: center;
+  float: center;
+} 

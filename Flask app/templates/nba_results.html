@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicting NBA All-Stars</title>
+    <style>
+
+.drop-down-label {
+  font-family: Helvetica;
+  font-weight: bold;
+  color: black;
+  font-size: 22px;
+  text-align: center;
+}
+
+.drop-down {
+  font-family: Helvetica;
+}
+
+.button {
+  display: inline-block;
+  border-radius: 4px;
+  background-color: black;
+  font-family: Helvetica;
+  border: none;
+  color: white;
+  text-align: center;
+  font-size: 28px;
+  padding: 20px;
+  width: 200px;
+  transition: all 0.3s;
+  cursor: pointer;
+  margin: 50px;
+}
+
+.button:hover {
+  background-color: #F55127;
+}
+
+.button span {
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  transition: 0.3s;
+}
+
+.button span:after {
+  content: '\00bb';
+  position: absolute;
+  opacity: 0;
+  top: 0;
+  right: -20px;
+  transition: 0.3s;
+}
+
+.button:hover span {
+  padding-right: 25px;
+}
+
+.button:hover span:after {
+  opacity: 1;
+  right: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 600px minmax(0px, 150px) minmax(300px, 400px) auto;
+}
+
+.top-left {
+  grid-column-start: 1;
+  grid-column-end: 2;
+}
+
+.mid-margin {
+  grid-column-start: 2;
+  grid-column-end: 3;
+}
+
+.top-center {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  text-align: center;
+}
+
+.top-right {
+  grid-column-start: 4;
+  grid-column-end: 5;
+  text-align: center;
+  float: center;
+}
+
+.bottom {
+  display: grid;
+  grid-template-columns: 600px minmax(0px, 150px) minmax(300px, 400px) auto;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
+}
+
+.project-title {
+  font-family: Helvetica;
+  font-weight: bold;
+  font-size: 60px;
+  color: black;
+  text-align: left;
+  margin-left: 30px;
+  margin-top: 30px;"
+}
+
+.project-subtitle {
+  font-family: Helvetica;
+  font-weight: normal;
+  font-size: 20px;
+  color: black;
+  text-align: left;
+  margin-left: 30px;
+  margin-top: -40px;"
+}
+
+.court-image {
+  z-index: 1;
+  position: relative;
+  top: 0px;
+} 
+
+#court-image {
+  height: auto;
+  width: 100%;
+  z-index: 1;
+  margin: 0;
+  right: 0%;
+  left: 0%;
+  text-align: center;
+}
+
+.block {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) auto;
+  position: absolute;
+  z-index: 2;
+  top: 650px;
+  right: 10%;
+  left: 20%;
+}
+
+.block2 {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) auto;
+  position: absolute;
+  z-index: 2;
+  top: 790px;
+  right: 10%;
+  left: 20%;
+}
+
+.block3 {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) auto;
+  position: absolute;
+  z-index: 2;
+  top: 930px;
+  right: 10%;
+  left: 20%;
+}
+
+.block4 {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) minmax(120px, 150px) auto;
+  position: absolute;
+  z-index: 2;
+  top: 1070px;
+  right: 10%;
+  left: 20%;
+}
+
+.circle-shape {
+  background: white;
+  border-radius: 100%;
+  height: 130px;
+  position: relative;
+  width: 130px;
+  right: 20%;
+  left: 20%;
+  padding: 0px;
+}
+
+.container {
+  position: relative;
+  font-family: Helvetica;
+  margin: 5px;
+}
+
+.centered {
+  position: absolute;
+  font-weight: bold;
+  font-size: 18px;
+  top: 50%;
+  left: 40%;
+  right: 50%;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  float: center;
+}
+
+.params {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  font-family: Helvetica;
+  font-size: 18;
+  margin: 5px;
+  text-align: center;
+}
+
+    </style>
+  </head>
+  <body>
+  <div class="grid">
+    <header>
+      <div class="top-left">
+        <h2 class="project-title">PREDICTING<br/>NEXT SEASON'S<br/>NBA ALL-STARS <span style="font-size: 300;">          &#8594;</span></h2>
+        <h3 class="project-subtitle">USING CLASSIFICATION MODELS INCLUDING<br/>LOGISTIC REGRESSION, KNN, RANDOM FOREST,<br/> SVC & ENSEMBLING</h3>
+      </div>
+    </header>
+    <div class="top-center" style="margin-top: 55px;">  
+      <form action="/age" method="POST">
+        <label class="drop-down-label" for="year">PICK A SEASON</label>
+        <br/>
+        <br/>
+        <input list="year-form" name="year-form" id="year">
+        <datalist class="drop-down" id="year-form">
+          <option value="1999-00">1999-00</option>
+          <option value="2000-01">2000-01</option>
+          <option value="2001-02">2001-02</option>
+          <option value="2002-03">2002-03</option>
+          <option value="2003-04">2003-04</option>
+          <option value="2004-05">2004-05</option>
+          <option value="2005-06">2005-06</option>
+          <option value="2006-07">2006-07</option>
+          <option value="2007-08">2007-08</option>
+          <option value="2008-09">2008-09</option>
+          <option value="2009-10">2009-10</option>
+          <option value="2010-11">2010-11</option>
+          <option value="2011-12">2011-12</option>
+          <option value="2012-13">2012-13</option>
+          <option value="2013-14">2013-14</option>
+          <option value="2014-15">2014-15</option>
+        </datalist>
+        <br/>  
+        <input class="button" type="submit" value="PREDICT">
+      </form>
+    </div>
+  </div>
+    <img class="court-image" id="court-image" media=all alt="Court 1" src="{{ user_image }}" />    
+        <div class="block">
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 2; grid-column-end: 3; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[0][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[0][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 3; grid-column-end: 4; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[1][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[1][1] }} </span></div>
+            </div>
+            <div class="container">            
+                <div class="circle-shape" style="grid-column-start: 4; grid-column-end: 5; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[2][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[2][1] }} </span></div>
+            </div>
+            <div class="container"> 
+                <div class="circle-shape" style="grid-column-start: 5; grid-column-end: 6; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[3][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[3][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 6; grid-column-end: 7; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[4][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[4][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 7; grid-column-end: 8; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[5][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[5][1] }} </span></div>
+            </div>
+        </div>
+        <div class="block2">
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 2; grid-column-end: 3; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[6][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[6][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 3; grid-column-end: 4; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[7][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[8][1] }} </span></div>
+            </div>
+            <div class="container">            
+                <div class="circle-shape" style="grid-column-start: 4; grid-column-end: 5; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[8][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[8][1] }} </span></div>
+            </div>
+            <div class="container"> 
+                <div class="circle-shape" style="grid-column-start: 5; grid-column-end: 6; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[9][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[9][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 6; grid-column-end: 7; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[10][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[10][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 7; grid-column-end: 8; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[11][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[11][1] }} </span></div>
+            </div>
+        </div>
+        <div class="block3">
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 2; grid-column-end: 3; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[12][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[12][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 3; grid-column-end: 4; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[13][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[13][1] }} </span></div>
+            </div>
+            <div class="container">            
+                <div class="circle-shape" style="grid-column-start: 4; grid-column-end: 5; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[14][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[14][1] }} </span></div>
+            </div>
+            <div class="container"> 
+                <div class="circle-shape" style="grid-column-start: 5; grid-column-end: 6; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[15][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[15][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 6; grid-column-end: 7; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[16][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[16][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 7; grid-column-end: 8; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[17][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[17][1] }} </span></div>
+            </div>
+        </div>
+        <div class="block4">
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 2; grid-column-end: 3; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[18][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[19][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 3; grid-column-end: 4; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[19][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[19][1] }} </span></div>
+            </div>
+            <div class="container">            
+                <div class="circle-shape" style="grid-column-start: 4; grid-column-end: 5; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[20][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[20][1] }} </span></div>
+            </div>
+            <div class="container"> 
+                <div class="circle-shape" style="grid-column-start: 5; grid-column-end: 6; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[21][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[21][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 6; grid-column-end: 7; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[22][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[22][1] }} </span></div>
+            </div>
+            <div class="container">
+                <div class="circle-shape" style="grid-column-start: 7; grid-column-end: 8; margin: 10px"></div>
+                <div class="centered"> {{ all_stars[23][0] }} <span style="font-weight: normal; font-size: 14px;"> {{ all_stars[23][1] }} </span></div>
+            </div>
+        </div>
+  </body>
+</html>

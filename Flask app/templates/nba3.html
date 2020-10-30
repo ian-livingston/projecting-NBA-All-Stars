@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicting NBA All-Stars</title>
+    <style>
+
+.drop-down-label {
+  font-family: Helvetica;
+  font-weight: bold;
+  color: black;
+  font-size: 22px;
+  text-align: center;
+}
+
+.drop-down {
+  font-family: Helvetica;
+}
+
+.button {
+  display: inline-block;
+  border-radius: 4px;
+  background-color: black;
+  font-family: Helvetica;
+  border: none;
+  color: white;
+  text-align: center;
+  font-size: 28px;
+  padding: 20px;
+  width: 200px;
+  transition: all 0.3s;
+  cursor: pointer;
+  margin: 50px;
+}
+
+.button:hover {
+  background-color: #F55127;
+}
+
+.button span {
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  transition: 0.3s;
+}
+
+.button span:after {
+  content: '\00bb';
+  position: absolute;
+  opacity: 0;
+  top: 0;
+  right: -20px;
+  transition: 0.3s;
+}
+
+.button:hover span {
+  padding-right: 25px;
+}
+
+.button:hover span:after {
+  opacity: 1;
+  right: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 600px minmax(0px, 150px) minmax(300px, 400px) auto;
+}
+
+.top-left {
+  grid-column-start: 1;
+  grid-column-end: 2;
+}
+
+.mid-margin {
+  grid-column-start: 2;
+  grid-column-end: 3;
+}
+
+.top-center {
+  grid-column-start: 3;
+  grid-column-end: 4;
+  text-align: center;
+}
+
+.top-right {
+  grid-column-start: 4;
+  grid-column-end: 5;
+  text-align: center;
+  float: center;
+}
+
+.bottom {
+  grid-column-start: 1;
+  grid-column-end: 4;
+}
+
+.project-title {
+  font-family: Helvetica;
+  font-weight: bold;
+  font-size: 60px;
+  color: black;
+  text-align: left;
+  margin-left: 30px;
+  margin-top: 30px;"
+}
+
+.project-subtitle {
+  font-family: Helvetica;
+  font-weight: normal;
+  font-size: 20px;
+  color: black;
+  text-align: left;
+  margin-left: 30px;
+  margin-top: -40px;"
+}
+
+.court-image {
+  z-index: 1;
+  position: relative;
+  top: 0px;
+} 
+
+#court-image {
+  height: auto;
+  width: 100%;
+  z-index: 1;
+  margin: 0;
+  right: 0%;
+  left: 0%;
+  text-align: center;
+}
+
+    </style>
+  </head>
+  <body>
+  <div  class="grid">
+    <header>
+      <div class="top-left">
+        <h2 class="project-title">PREDICTING<br/>NEXT SEASON'S<br/>NBA ALL-STARS <span style="font-size: 300;">          &#8594;</span></h2>
+        <h3 class="project-subtitle">USING CLASSIFICATION MODELS INCLUDING<br/>LOGISTIC REGRESSION, KNN, RANDOM FOREST,<br/> SVC & ENSEMBLING</h3>
+      </div>
+    </header>
+    <div class="top-center" style="margin-top: 55px">  
+      <form action="/predict" method="POST">
+        <label class="drop-down-label" for="team">OPTIONAL:<br/>PICK A TEAM</label>
+        <br/>
+        <br/>
+        <input list="team-form" name="team-form" id="team">
+        <datalist class="drop-down" id="team-form">
+          <option value="all, {{ max_age }}, {{ year_choice }}">ALL TEAMS</option>
+          <option value="ATL, {{ max_age }}, {{ year_choice }}">Atlanta Hawks</option>
+          <option value="BOS, {{ max_age }}, {{ year_choice }}">Boston Celtics</option>
+          <option value="BKN, {{ max_age }}, {{ year_choice }}">Brooklyn Nets</option>
+          <option value="CHA, {{ max_age }}, {{ year_choice }}">Charlotte Hornets</option>
+          <option value="CHI, {{ max_age }}, {{ year_choice }}">Chicago Bulls</option>
+          <option value="CLE, {{ max_age }}, {{ year_choice }}">Cleveland Cavaliers</option>
+          <option value="DAL, {{ max_age }}, {{ year_choice }}">Dallas Mavericks</option>
+          <option value="DET, {{ max_age }}, {{ year_choice }}">Detroit Pistons</option>
+          <option value="GSW, {{ max_age }}, {{ year_choice }}">Golden State Warriors</option>
+          <option value="HOU, {{ max_age }}, {{ year_choice }}">Houston Rockets</option>
+          <option value="IND, {{ max_age }}, {{ year_choice }}">Indian Pacers</option>
+          <option value="LAC, {{ max_age }}, {{ year_choice }}">Los Angeles Clippers</option>
+          <option value="LAL, {{ max_age }}, {{ year_choice }}">Los Angeles Lakers</option>
+          <option value="MEM, {{ max_age }}, {{ year_choice }}">Memphis Grizzlies</option>
+          <option value="MIA, {{ max_age }}, {{ year_choice }}">Miami Heat</option>
+          <option value="MIL, {{ max_age }}, {{ year_choice }}">Milwaukee Bucks</option>
+          <option value="MIN, {{ max_age }}, {{ year_choice }}">Minnesota Timberwolves</option>
+          <option value="NOP, {{ max_age }}, {{ year_choice }}">New Orleans Pelicans</option>
+          <option value="NYK, {{ max_age }}, {{ year_choice }}">New York Knicks</option>
+          <option value="OKC, {{ max_age }}, {{ year_choice }}">Oklahoma City Thunder</option>
+          <option value="ORL, {{ max_age }}, {{ year_choice }}">Orlando Magic</option>
+          <option value="PHI, {{ max_age }}, {{ year_choice }}">Philadephia 76ers</option>
+          <option value="PHO, {{ max_age }}, {{ year_choice }}">Phoenix Suns</option>
+          <option value="POR, {{ max_age }}, {{ year_choice }}">Portland Trail Blazers</option>
+          <option value="SAC, {{ max_age }}, {{ year_choice }}">Sacramento Kings</option>
+          <option value="SAS, {{ max_age }}, {{ year_choice }}">San Antonio Spurs</option>
+          <option value="TOR, {{ max_age }}, {{ year_choice }}">Toronto Raptors</option>
+          <option value="UTA, {{ max_age }}, {{ year_choice }}">Utah Jazz</option>
+          <option value="WAS, {{ max_age }}, {{ year_choice }}">Washington Wizards</option>
+
+
+        </datalist>
+        <br/>  
+        <input class="button" type="submit" value="PREDICT">
+      </div>
+      </form>
+    </div>
+    <div class="bottom">  
+      <img class="court-image" id="court-image" media=all alt="Court 1" src="{{ user_image }}" />
+    </div>  
+  </body>
+</html>
